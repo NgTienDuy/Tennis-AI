@@ -1,0 +1,11 @@
+=== TENNIS MATCH ANALYSIS REPORT ===
+Total Time (s): 1280.9245059490204
+Total Frames: 86
+Court Score: 5155.0
+Court Accuracy (%): 94.14588087182312
+Top Player Dist (m): 1.8200000524520874
+Bottom Player Dist (m): 10.960000038146973
+
+[Velocity]
+  Avg P1: 11.010000228881836
+  Avg P2: 1.8300000429153442
