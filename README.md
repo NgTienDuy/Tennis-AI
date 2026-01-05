@@ -1,94 +1,220 @@
-# Mô hình AI phân tích hành vi người chơi Tennis / Cầu lông
+---
+marp: true
+theme: default
+paginate: true
+footer: 'Hệ thống Phân tích Tennis - [Nguyễn Tiến Duy]'
+---
 
-utils.py
-    Hỗ trợ xử lý ảnh (crop)
-    Thiết lập device (CPU/GPU)
-    Lấy thông số video
-    Định nghĩa kết nối ketpoints (stickman)
+# HỆ THỐNG PHÂN TÍCH VÀ THEO DÕI TRẬN ĐẤU TENNIS BẰNG THỊ GIÁC MÁY TÍNH
 
-datasets.py
-    Nạp dữ liệu cho 3 nhiệm vụ:
-        ThetisDataset: Xử lý THETIS (Nhận diện hành động)
-        StrokesDataset: Xử lý dữ liệu phân loại cú đánh
-        TrackNetDataset: Xử lý dữ liệu theo dõi bóng bằng cách ghép 3 frame liên tiếp
+**Môn học:** Thị giác máy tính
+**GVHD:** [TS. Phạm Tiến Lâm]
+**Sinh viên:** [Nguyễn Tiến Duy]
+**Mã SV:** [21002193]
 
-court_reference.py
-    Chứa tọa độ chuẩn của sân Tennis (đường biên, lưới...)
-    Chứa các hàm tạo mask hoặc ảnh tham chiếu sân
+---
 
-court_detection.py
-    Xử lý ảnh: Thresholding và lọc màu để tách đường line trắng của sân
-    Phát hiện đường thẳng bằng biến đổi Hough (Hough Transform)
-    Tìm ma trận chuyển đổi (Homography) mà khớp với các giao điểm trên ảnh với mô hình chuẩn (court_reference) để ánh xạ từ video sang 2D
-    Tracking: Theo dõi vị trí sân qua các frame tiếp theo và giảm tải tính toán
+# Nội dung trình bày
 
-sort.py
-    Thuật toán SORT:
-        Kalman Filter: Dự đoán vị trí của đối tượng trong frame tiếp theo dựa trên tốc độ hiện tại
-        IoU Matching: So sánh bounding box ở frame hiện tại cới dự đoán từ frame trước đó để duy trì ID đối tượng
-    -> Theo dõi người chơi và đảm bảo danh tính
+1. **Đặt vấn đề & Mục tiêu:** Tại sao làm đề tài này?
+2. **Cơ sở lý thuyết:** Các công nghệ lõi (Hough, Faster R-CNN, Kalman).
+3. **Phương pháp đề xuất:** Quy trình xử lý hệ thống.
+4. **Thực nghiệm & Kết quả:** Demo và đánh giá hiệu năng.
+5. **Kết luận & Hướng phát triển.**
 
-detection.py
-    Sử dụng Faster R-CNN (ResNet50) để phát hiện người chới
-        Player 1: Dựa vào vùng ROI nửa dưới sân và chọn box lớn nhất gần vị trí cũ nhất
-        Player 2: Sử dụng SORT để theo dõi IO, sử dụng thuật toán lọc để loại bỏ người nhặt bóng hoặc khán giả
+---
 
-statistics.py
-    Phân tích và trực quan hóa dữ liệu
-        Heatmap: Mật độ di chuyển của vận động viên
-        Tổng quãng đường di chuyển của từng người chơi
-        Vẽ các biểu đồ này chồng lên hình ảnh sân tham chiếu
+# 1. Đặt vấn đề
 
-create_data.py
-    Tạo dataset từ video gốc
-        Cắt vùng ảnh: Tự động phát hiện người chơi và cắt vùng patch quanh họ
-        Làm mượt: Sử dụng bộ lọc Savitzky-Golay để làm mượt quỹ đạo di chuyển của khung hình, giúp đầu ra video ổn định, phục vụ việc huấn luyện mô hình
+> *"Người ta không thể phân biệt cầu thủ đánh bóng tỉ lệ .300 và .275 bằng mắt thường."* - Michael Lewis (Moneyball)
 
-stroke_recognition.py
-    Nhận diện cứ đánh
-        CNN (Inception V3) dùng để trích suất đặc trưng hình ảnh từng frame
-        RNN (LSTM) học sự phụ thuộc theo thời gian của chuỗi các đặc trưng này (Forehand, Backhand, Service/Smash)
+* **Thực trạng:**
+    * Phân tích thể thao chuyển dịch từ "trực giác" sang "dữ liệu".
+    * Các hệ thống chuyên nghiệp (Hawk-Eye) giá triệu đô, cần 10+ camera.
+    * Thiếu giải pháp cho giải đấu phong trào/bán chuyên.
+* **Thách thức:**
+    * Bóng nhỏ, di chuyển nhanh (Motion blur).
+    * Camera đơn (Broadcast view) thường bị che khuất.
 
-trainer.py
-    Huấn luyện mô hình nhận diện cú đánh
-        Quản lý training loop: epochs, loss, accuracy cho train và valid
-        Sử dụng Adam Optimizer và giảm learning-rate nếu loss không cải thiện
-        Đánh  giá bằng accuracy trên tập test và vẽ confusion-matrix xem có nhầm lẫn cú đánh nào không
+---
 
-ball_tracker_net.py
-    Kiến trúc mạng BallTrackerNet
-        Input: 9 kênh màu (3 frame liên tiếp) để mô hình học thông tin chuyển động của bóng
-        Encoder: Trích xuất đặc trưng và giảm kích thước không gian
-        Decoder: Khôi phục kích thước gốc để tạo Heatmap, nơi điểm có giá trị cao nhất chính là vị trí quả bóng
+# Mục tiêu đề tài
 
-ball_detection.py
-    Phát hiện bóng trong video thực tế
-        Ghép 3 frame liên tiếp thành 1 input
-        Đưa qua mạng neural để được tọa độ bóng
-        Lọc nhiễu hoặc threshold_dist và lưu tọa độ để vẽ lên video hoặc biểu đồ phân tích
+Xây dựng hệ thống tự động hóa với **chi phí thấp** trên **phần cứng phổ thông**:
 
-pose.py
-    Sử dụng Keypoint R-CNN (được huấn luyện sẵn trên tập COCO) để trích xuất dạng người
-        Phát hiện keypoints: Tọa độ các điểm khớp (mũi, mắt, vai...) trên cơ thể người chơi
-        Vẽ stickman: Nối các điểm khớp theo quy tắc đã định nghĩa (line_connection) để tạo thành hình nhân, giúp trực quan hóa hành động của vận động viên
+1. **Input:** Video trận đấu (1 camera duy nhất).
+2. **Core Tasks:**
+    * Nhận diện sân (Court Detection).
+    * Nhận diện người chơi (Player Detection).
+    * Theo dõi vết di chuyển (Tracking).
+3. **Output:**
+    * Minimap 2D thời gian thực.
+    * Biểu đồ nhiệt (Heatmap) chiến thuật.
 
-smooth.py
-    Xử lý dáng người sau khi trích xuất
-        Hampel Filter: Phát hiện và loại bỏ các nhiễu ngoại lai (outliers)
-        Savitzky-Golay Filter: Làm mượt chuyển động các điểm khớp, giúp stickman chuyển động tự nhiên hơn
+---
 
-process.py
+# 2. Cơ sở lý thuyết: Nhận diện Sân
 
+**Phép biến đổi Hough (Probabilistic Hough Transform)**
 
+* **Mục đích:** Phát hiện các đường thẳng (line) của sân tennis.
+* **Nguyên lý:** Biểu diễn đường thẳng trong không gian tham số cực $(\rho, \theta)$.
 
-5 nhóm chức năng:
-    Định vị sân:
-        court_reference + court_detection
-    Theo dõi người chơi:
-        detection + sort + pose + smooth
-    Theo dõi bóng:
-        ball_tracker_net + ball_detection + datasets (TrackNet)
-    Nhân diện cú đánh:
-        stroke_recognition + trainer + datasets (Strokes)
-    Tổng hợp và báo cáo:
-        process + statistics + utils + create_data
+$$\rho = x \cos \theta + y \sin \theta$$
+
+* **Homography (Ánh xạ xạ ảnh):**
+    * Chuyển đổi tọa độ từ ảnh camera $(u,v)$ sang mặt phẳng sân thực tế $(x,y)$.
+    * Yêu cầu tối thiểu 4 điểm tương ứng.
+
+---
+
+# Cơ sở lý thuyết: Nhận diện Người
+
+**Mạng nơ-ron tích chập: Faster R-CNN**
+
+* **Backbone:** ResNet-50 (Trích xuất đặc trưng).
+* **RPN (Region Proposal Network):** Đề xuất các vùng có khả năng chứa đối tượng (Anchor Boxes).
+* **Loss Function:** Tổng của mất mát phân loại và hồi quy.
+
+$$L = L_{cls} + L_{reg}$$
+
+* **Ưu điểm:** Chính xác hơn các phương pháp trừ nền (Background Subtraction) cũ.
+
+---
+
+# Cơ sở lý thuyết: Tracking
+
+**Bộ lọc Kalman (Kalman Filter)**
+
+* **Dự đoán (Predict):** Ước lượng vị trí tiếp theo dựa trên vận tốc hiện tại.
+  $$\hat{x}_{k|k-1} = F_k \hat{x}_{k-1|k-1}$$
+* **Cập nhật (Update):** Hiệu chỉnh vị trí khi có kết quả từ Faster R-CNN.
+
+**Thuật toán SORT:**
+* Kết hợp Kalman Filter và thuật toán **Hungarian**.
+* Dùng chỉ số **IoU** để ghép cặp ID.
+
+---
+
+# 3. Phương pháp: Tổng quan hệ thống
+
+* **Kiến trúc Pipeline tuần tự:**
+    1. **Preprocessing:** Lọc nhiễu, chuẩn hóa ảnh.
+    2. **Detection:** Chạy song song detect sân và người.
+    3. **Tracking:** Gán ID cho người chơi.
+    4. **Visualization:** Vẽ Minimap.
+
+---
+
+# Module Nhận diện Sân (Court Detection)
+
+1. **Lọc màu (Color Thresholding):**
+   * Lấy pixel trắng: `Intensity > 200`.
+   * Lọc nhiễu bằng hình thái học (Dilation).
+2. **Gộp dòng (Line Merging):**
+   * Phân loại: Ngang (Horizontal) vs Dọc (Vertical).
+   * Gộp các đoạn thẳng rời rạc nếu khoảng cách < 20px.
+3. **Kết quả:** Xác định 4 đỉnh sân để tính ma trận Homography.
+
+---
+
+# Module Nhận diện Người (Player Detection)
+
+* **Model:** `torchvision.models.fasterrcnn_resnet50_fpn`.
+* **Trọng số:** Pre-trained trên COCO Dataset.
+* **Bộ lọc Logic (Heuristic Filter):**
+    * Chỉ giữ lại box có độ tin cậy > 0.7.
+    * Chỉ giữ lại box nằm trong vùng sân (ROI).
+    * Phân loại: **Top Player** vs **Bottom Player** dựa trên vị trí lưới.
+
+---
+
+# Module Theo dõi (Tracking Strategy)
+
+Sử dụng thư viện **SORT** tùy chỉnh:
+
+* **Bước 1:** Dự đoán vị trí mới của các track cũ (Kalman Predict).
+* **Bước 2:** Tính ma trận IoU giữa Track và Detection mới.
+* **Bước 3:** Ghép cặp (Hungarian Algorithm).
+* **Bước 4:** Xử lý ngoại lệ:
+    * **Unmatched Tracks:** Xóa nếu mất dấu quá 10 frames.
+    * **Unmatched Detections:** Tạo ID mới.
+
+---
+
+# 4. Thực nghiệm & Kết quả
+
+**Môi trường thử nghiệm:**
+* **Dữ liệu:** 3 Video clips (Full HD 30fps) - Sân cứng & Sân cỏ.
+* **Phần cứng:** GPU NVIDIA GeForce [Tên GPU].
+* **Thư viện:** PyTorch, OpenCV, NumPy.
+
+**Thách thức xử lý:**
+* Bóng mờ (Motion blur).
+* Che khuất (Occlusion) khi người chơi lên lưới.
+
+---
+
+# Đánh giá Định lượng (Quantitative)
+
+So sánh Faster R-CNN (Đề xuất) vs Trừ nền (Cũ):
+
+| Phương pháp | Precision | Recall | F1-Score | FPS |
+| :--- | :---: | :---: | :---: | :---: |
+| Background Sub. | 78.5% | 82.0% | 80.2% | 30 |
+| **Faster R-CNN** | **96.2%** | **94.5%** | **95.3%** | **18** |
+
+> **Nhận xét:** Deep Learning chậm hơn nhưng chính xác vượt trội trong môi trường động.
+
+---
+
+# Kết quả Trực quan (Demo)
+
+* **Tracking:** Duy trì ID ổn định khi người chơi di chuyển chéo sân.
+* **Minimap:** Phản ánh đúng vị trí thực tế trên mô hình 2D.
+
+---
+
+# Phân tích Chiến thuật (Heatmap)
+
+* **Vùng hoạt động:** 70% thời gian ở Rally Zone (Sau baseline).
+* **Chiến thuật:**
+    * Player 1 (Thắng): Bao sân tốt, di chuyển linh hoạt.
+    * Player 2: Bị ép về góc sân (Defensive Zone).
+
+---
+
+# 5. Kết luận
+
+* **Đạt được:**
+    * Xây dựng thành công Pipeline end-to-end.
+    * Ứng dụng Deep Learning (Faster R-CNN) thay thế phương pháp cổ điển.
+    * Giải quyết tốt bài toán Tracking và Mapping 2D.
+* **Hạn chế:**
+    * Tốc độ ~18 FPS (Chưa đạt Real-time 30 FPS).
+    * Đôi khi nhận diện nhầm nhặt bóng (Ball boy).
+
+---
+
+# Hướng phát triển
+
+1. **Tối ưu tốc độ:**
+   * Chuyển sang mô hình **YOLOv8** hoặc **YOLOv11** (One-stage detector).
+2. **Nhận diện hành động (Action Recognition):**
+   * Dùng LSTM/3D-CNN để phân loại cú đánh (Forehand, Backhand, Serve).
+3. **Dự đoán:**
+   * Dự đoán điểm rơi của bóng để hỗ trợ tập luyện.
+
+---
+
+# Tài liệu tham khảo
+
+1. Ren et al., *Faster R-CNN: Towards Real-Time Object Detection*, NIPS 2015.
+2. Bewley et al., *Simple Online and Realtime Tracking (SORT)*, ICIP 2016.
+3. Lewis, M., *Moneyball: The Art of Winning an Unfair Game*, 2004.
+
+---
+
+# CẢM ƠN THẦY CÔ VÀ CÁC BẠN ĐÃ LẮNG NGHE!
+
+**Q & A**

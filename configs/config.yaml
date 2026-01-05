@@ -1,0 +1,52 @@
+# configs/config.yaml
+
+system:
+  device: "cuda" # hoặc "cpu"
+  display: False # Hiển thị cửa sổ popup khi chạy (False để chạy nhanh hơn)
+
+paths:
+  input_video: "./data/raw/videos/video_input6.mp4" # Đường dẫn video đầu vào mặc định
+  output_folder: "./outputs"
+  
+  # Đường dẫn tới các model weights (Hãy đảm bảo copy file .pth vào folder models)
+  tracknet_weights: "./models/tracknet_weights_2_classes.pth"
+  stroke_weights: "./models/stroke_classifier_weights.pth"
+  # FasterRCNN và KeypointRCNN dùng pretrained của torchvision nên sẽ tự tải nếu chưa có
+
+detection:
+  ball:
+    threshold_dist: 100
+    model_input_width: 640
+    model_input_height: 360
+    out_channels: 2
+  
+  person:
+    min_score: 0.5
+    secondary_score: 0.2 # Điểm thấp hơn để track người chơi khi bị che khuất
+  
+  pose:
+    min_score: 0.5
+    keypoint_threshold: 2
+    box_detection: False # Có vẽ box quanh stickman không
+
+court:
+  # Các tham số màu sắc hoặc ngưỡng lọc sân (nếu cần tinh chỉnh sâu)
+  colour_threshold: 200
+  dist_tau: 3
+  intensity_threshold: 40
+
+visualization:
+  show_minimap: True
+  show_velocity: True
+  colors:
+    ball: [0, 255, 255]       # Vàng (BGR)
+    player_1: [0, 0, 255]     # Đỏ
+    player_2: [255, 0, 255]   # Tím/Hồng
+    court_lines: [255, 255, 255]
+    stickman_line: [0, 0, 255]
+    stickman_point: [255, 0, 0]
+
+analysis:
+  smoothing_window: 7   # Độ mượt của chuyển động (số frame)
+  fps_simulated: 30     # FPS giả định nếu không đọc được từ video
+  velocity_window: 5    # Số frame dùng để tính vận tốc trung bình (tránh nhảy số liên tục)
