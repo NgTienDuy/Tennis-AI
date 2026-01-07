@@ -5,7 +5,7 @@ system:
   display: False # Hiển thị cửa sổ popup khi chạy (False để chạy nhanh hơn)
 
 paths:
-  input_video: "./data/raw/videos/video_input6.mp4" # Đường dẫn video đầu vào mặc định
+  input_video: "./data/raw/videos/video_input5.mp4" # Đường dẫn video đầu vào mặc định
   output_folder: "./outputs"
   
   # Đường dẫn tới các model weights (Hãy đảm bảo copy file .pth vào folder models)

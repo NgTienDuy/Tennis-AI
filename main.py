@@ -37,7 +37,7 @@ def main():
     check_dir(dir_reports)
     check_dir(dir_packages)
     
-    checkpoint_path = os.path.join(dir_packages, "detection_checkpoint6.pkl")
+    checkpoint_path = os.path.join(dir_packages, "detection_checkpoint5.pkl")
     input_path = config['paths']['input_video']
     
     cap = cv2.VideoCapture(input_path)
@@ -140,7 +140,7 @@ def main():
     # =========================================================================
     print("\n>>> [ANALYSIS] Generating Reports & Stickman Video...")
     
-    stickman_vid_path = os.path.join(dir_videos, 'stickman_2players6.avi')
+    stickman_vid_path = os.path.join(dir_videos, 'stickman_2players5.avi')
     
     if True: 
         if 'pose_extractor_p1' not in locals():
@@ -150,8 +150,8 @@ def main():
             pose_extractor_p2 = PoseExtractor(config)
             pose_extractor_p2.data = data_store.get("pose_data_p2", [])
 
-        df_p1 = pose_extractor_p1.save_csv(dir_reports, 'pose_p1_6.csv')
-        df_p2 = pose_extractor_p2.save_csv(dir_reports, 'pose_p2_6.csv')
+        df_p1 = pose_extractor_p1.save_csv(dir_reports, 'pose_p1_5.csv')
+        df_p2 = pose_extractor_p2.save_csv(dir_reports, 'pose_p2_5.csv')
 
         smoother = DataSmoother()
         smooth_p1 = smoother.smooth_pose_data(df_p1)
@@ -189,10 +189,10 @@ def main():
         }
     }
     
-    save_dashboard_image(heatmap, report_data, os.path.join(dir_reports, 'dashboard6.png'))
+    save_dashboard_image(heatmap, report_data, os.path.join(dir_reports, 'dashboard5.png'))
     save_text_reports(report_data, dir_reports)
     try:
-        save_ball_trajectory(data_store["ball_positions"], os.path.join(dir_reports, 'trajectory6.png'), data_store["court_matrices"])
+        save_ball_trajectory(data_store["ball_positions"], os.path.join(dir_reports, 'trajectory5.png'), data_store["court_matrices"])
     except: pass
 
     # =========================================================================
@@ -200,7 +200,7 @@ def main():
     # =========================================================================
     print(f"\n>>> [RENDER] Creating Final Video (.avi)...")
     
-    final_vid_path = os.path.join(dir_videos, 'finalmatch6.avi')
+    final_vid_path = os.path.join(dir_videos, 'finalmatch5.avi')
     
     court_img_ref = court_detector.court_reference.court
     # Tính toán kích thước Minimap CHẴN
