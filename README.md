@@ -103,6 +103,49 @@ $$L = L_{cls} + L_{reg}$$
 
 ---
 
+# BẢN ĐỒ CẤU TRÚC FOLDER
+```text
+.
+├── configs/                # Cài đặt hệ thống
+│   └── config.yaml         # Ngưỡng, đường dẫn, màu sắc
+│
+├── models/                 # Bộ não AI (đã huấn luyện)
+│   ├── TrackNet.pth
+│   └── StrokeNet.pth
+│
+├── modules/                # Giai đoạn 3: Inference
+│   ├── court.py            # Phát hiện sân
+│   ├── player.py           # Phát hiện người chơi
+│   ├── ball.py             # Phát hiện bóng
+│   ├── pose.py             # Trích xuất xương
+│   └── stroke.py           # Phân loại cú đánh
+│
+├── utils/                  # Công cụ hỗ trợ
+│   ├── sort.py             # Tracking (Kalman Filter)
+│   └── video_utils.py      # Đọc & xử lý video
+│
+├── analysis/               # Giai đoạn 4: Xử lý số liệu
+│   ├── smoothing.py        # Lọc nhiễu
+│   ├── velocity.py         # Tính vận tốc (km/h)
+│   └── stats.py            # Heatmap, quãng đường
+│
+├── visualization/          # Giai đoạn 4: Trực quan hóa
+│   ├── drawer.py           # Vẽ sân, minimap
+│   ├── dashboard.py        # Biểu đồ báo cáo
+│   └── stickman_animator.py# Video skeleton
+│
+├── data/                   # Input / Output
+│   ├── raw/                # Video gốc
+│   └── processed/          # Dữ liệu trung gian
+│
+├── outputs/                # Kết quả cuối
+│   ├── videos/             # Video .avi
+│   ├── reports/            # Ảnh, JSON
+│   └── packages/           # Checkpoint (.pkl)
+│
+└── main.py                 # Nhạc trưởng pipeline
+```
+
 # Module Nhận diện Sân (Court Detection)
 
 1. **Lọc màu (Color Thresholding):**
