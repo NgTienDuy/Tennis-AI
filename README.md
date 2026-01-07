@@ -1,16 +1,13 @@
 ---
-marp: true
-theme: default
-paginate: true
-footer: 'Hệ thống Phân tích Tennis - [Nguyễn Tiến Duy]'
+
 ---
 
 # HỆ THỐNG PHÂN TÍCH VÀ THEO DÕI TRẬN ĐẤU TENNIS BẰNG THỊ GIÁC MÁY TÍNH
 
 **Môn học:** Thị giác máy tính
 **GVHD:** [TS. Phạm Tiến Lâm]
-**Sinh viên:** [Nguyễn Tiến Duy]
-**Mã SV:** [21002193]
+**Sinh viên:** [Nguyễn Tiến Duy]                Mã SV: 21002193
+**Sinh viên:** [Khiếu Hữu Tiến Dũng]            Mã SV: 22001310
 
 ---
 
